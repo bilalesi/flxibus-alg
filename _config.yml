@@ -1,0 +1,8 @@
+title: Flxibus-alg
+description: naaah
+theme: jekyll-theme-cayman
+
+# Navigation
+header_pages:
+  - index.md
+  - technical_architecture_detailed.md
