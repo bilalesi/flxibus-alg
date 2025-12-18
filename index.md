@@ -12,6 +12,7 @@ This is your homepage.
 - [Technical Architecture](technical_architecture_detailed.md)
 - [Tech Architecture v2](technical_architecture_detailed_v2.md)
 - [Claude AI Integration](claude/ai_integration.md)
+- [Claude Technical Architecture](claude/technical_architecture.md)
 - [Algeria Adaptation](claude/algeria_adaptation.md)
 - [Business Model](claude/business_model_algeria.md)
 - [FlixBus Analysis](claude/flixbus_analysis.md)

@@ -3,8 +3,7 @@ description: naaah
 theme: jekyll-theme-cayman
 
 # Exclude files with code that breaks Jekyll
-exclude:
-  - claude/technical_architecture (1).md
+exclude: []
 
 # Navigation
 header_pages:

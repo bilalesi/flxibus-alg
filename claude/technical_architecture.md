@@ -1,8 +1,13 @@
+---
+render_with_liquid: false
+---
+
 # Complete Technical Architecture & Implementation Guide
 
 ## Technology Stack Overview
 
 ### Backend
+
 - **Runtime**: Bun.js (latest) - Fast, modern JavaScript runtime
 - **Framework**: Elysia - High-performance web framework for Bun
 - **Validation**: TypeBox - JSON Schema Type Builder with full type safety
@@ -11,6 +16,7 @@
 - **API Style**: RESTful + WebSocket for real-time updates
 
 ### Frontend - Web (Option 1)
+
 - **Framework**: TanStack Start - SSR React framework
 - **Form Management**: TanStack Form
 - **Data Fetching**: TanStack Query (React Query)
@@ -19,12 +25,14 @@
 - **State Management**: Zustand / Jotai
 
 ### Frontend - Web/Mobile (Option 2)
+
 - **Framework**: Expo (latest) - Universal app with file routing
 - **Platform**: iOS, Android, Web
 - **Navigation**: Expo Router (file-based)
 - **Deployment**: EAS Build & EAS Update
 
 ### UI Components
+
 - **DiceUI**: Modern, accessible components
 - **reUI**: Beautiful, customizable components
 - **shadcn/ui**: Radix-based, copy-paste components
@@ -32,6 +40,7 @@
 - **Styling**: Tailwind CSS
 
 ### Infrastructure
+
 - **Database**: PostgreSQL (Supabase / Railway / Neon)
 - **File Storage**: S3-compatible (Cloudflare R2 / MinIO)
 - **Caching**: Redis (Upstash / Railway)
@@ -179,34 +188,41 @@ backend/
 
 ```typescript
 // src/db/schema/users.ts
-import { pgTable, serial, varchar, timestamp, boolean, jsonb } from 'drizzle-orm/pg-core';
-import { Type, Static } from '@sinclair/typebox';
+import {
+  pgTable,
+  serial,
+  varchar,
+  timestamp,
+  boolean,
+  jsonb,
+} from "drizzle-orm/pg-core";
+import { Type, Static } from "@sinclair/typebox";
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  phone: varchar('phone', { length: 20 }).unique(),
-  passwordHash: varchar('password_hash', { length: 255 }),
-  firstName: varchar('first_name', { length: 100 }).notNull(),
-  lastName: varchar('last_name', { length: 100 }).notNull(),
-  role: varchar('role', { length: 20 }).notNull().default('customer'),
-  isVerified: boolean('is_verified').notNull().default(false),
-  preferences: jsonb('preferences'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  phone: varchar("phone", { length: 20 }).unique(),
+  passwordHash: varchar("password_hash", { length: 255 }),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  role: varchar("role", { length: 20 }).notNull().default("customer"),
+  isVerified: boolean("is_verified").notNull().default(false),
+  preferences: jsonb("preferences"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // TypeBox schema for validation
 export const UserSchema = Type.Object({
-  email: Type.String({ format: 'email' }),
-  phone: Type.Optional(Type.String({ pattern: '^\\+213[0-9]{9}$' })),
+  email: Type.String({ format: "email" }),
+  phone: Type.Optional(Type.String({ pattern: "^\\+213[0-9]{9}$" })),
   firstName: Type.String({ minLength: 2, maxLength: 100 }),
   lastName: Type.String({ minLength: 2, maxLength: 100 }),
   password: Type.String({ minLength: 8 }),
 });
 
 export const UserLoginSchema = Type.Object({
-  email: Type.String({ format: 'email' }),
+  email: Type.String({ format: "email" }),
   password: Type.String(),
 });
 
@@ -217,53 +233,76 @@ export type UserDTO = Static<typeof UserSchema>;
 
 ```typescript
 // src/db/schema/bookings.ts
-import { pgTable, serial, integer, varchar, timestamp, decimal, jsonb, index } from 'drizzle-orm/pg-core';
-import { Type } from '@sinclair/typebox';
+import {
+  pgTable,
+  serial,
+  integer,
+  varchar,
+  timestamp,
+  decimal,
+  jsonb,
+  index,
+} from "drizzle-orm/pg-core";
+import { Type } from "@sinclair/typebox";
 
-export const bookings = pgTable('bookings', {
-  id: serial('id').primaryKey(),
-  bookingRef: varchar('booking_ref', { length: 20 }).notNull().unique(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  routeId: integer('route_id').notNull().references(() => routes.id),
-  departureTime: timestamp('departure_time').notNull(),
-  arrivalTime: timestamp('arrival_time').notNull(),
-  seatNumbers: jsonb('seat_numbers').notNull(),
-  passengers: jsonb('passengers').notNull(),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  commission: decimal('commission', { precision: 10, scale: 2 }).notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('pending'),
-  paymentStatus: varchar('payment_status', { length: 20 }).notNull().default('pending'),
-  paymentMethod: varchar('payment_method', { length: 50 }),
-  ancillaries: jsonb('ancillaries'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-}, (table) => ({
-  userIdx: index('user_idx').on(table.userId),
-  routeIdx: index('route_idx').on(table.routeId),
-  statusIdx: index('status_idx').on(table.status),
-  bookingRefIdx: index('booking_ref_idx').on(table.bookingRef),
-}));
+export const bookings = pgTable(
+  "bookings",
+  {
+    id: serial("id").primaryKey(),
+    bookingRef: varchar("booking_ref", { length: 20 }).notNull().unique(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    routeId: integer("route_id")
+      .notNull()
+      .references(() => routes.id),
+    departureTime: timestamp("departure_time").notNull(),
+    arrivalTime: timestamp("arrival_time").notNull(),
+    seatNumbers: jsonb("seat_numbers").notNull(),
+    passengers: jsonb("passengers").notNull(),
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    commission: decimal("commission", { precision: 10, scale: 2 }).notNull(),
+    status: varchar("status", { length: 20 }).notNull().default("pending"),
+    paymentStatus: varchar("payment_status", { length: 20 })
+      .notNull()
+      .default("pending"),
+    paymentMethod: varchar("payment_method", { length: 50 }),
+    ancillaries: jsonb("ancillaries"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("user_idx").on(table.userId),
+    routeIdx: index("route_idx").on(table.routeId),
+    statusIdx: index("status_idx").on(table.status),
+    bookingRefIdx: index("booking_ref_idx").on(table.bookingRef),
+  })
+);
 
 export const BookingSchema = Type.Object({
   routeId: Type.Integer(),
-  departureTime: Type.String({ format: 'date-time' }),
+  departureTime: Type.String({ format: "date-time" }),
   seatNumbers: Type.Array(Type.String()),
-  passengers: Type.Array(Type.Object({
-    firstName: Type.String(),
-    lastName: Type.String(),
-    age: Type.Optional(Type.Integer()),
-    idNumber: Type.Optional(Type.String()),
-  })),
+  passengers: Type.Array(
+    Type.Object({
+      firstName: Type.String(),
+      lastName: Type.String(),
+      age: Type.Optional(Type.Integer()),
+      idNumber: Type.Optional(Type.String()),
+    })
+  ),
   paymentMethod: Type.Union([
-    Type.Literal('cash'),
-    Type.Literal('card'),
-    Type.Literal('mobile_money'),
+    Type.Literal("cash"),
+    Type.Literal("card"),
+    Type.Literal("mobile_money"),
   ]),
-  ancillaries: Type.Optional(Type.Object({
-    extraLuggage: Type.Optional(Type.Boolean()),
-    seatSelection: Type.Optional(Type.Boolean()),
-    insurance: Type.Optional(Type.Boolean()),
-  })),
+  ancillaries: Type.Optional(
+    Type.Object({
+      extraLuggage: Type.Optional(Type.Boolean()),
+      seatSelection: Type.Optional(Type.Boolean()),
+      insurance: Type.Optional(Type.Boolean()),
+    })
+  ),
 });
 
 export type Booking = typeof bookings.$inferSelect;
@@ -272,25 +311,37 @@ export type NewBooking = typeof bookings.$inferInsert;
 
 ```typescript
 // src/db/schema/routes.ts
-import { pgTable, serial, integer, varchar, decimal, timestamp, time, boolean, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  integer,
+  varchar,
+  decimal,
+  timestamp,
+  time,
+  boolean,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
-export const routes = pgTable('routes', {
-  id: serial('id').primaryKey(),
-  partnerId: integer('partner_id').notNull().references(() => partners.id),
-  origin: varchar('origin', { length: 100 }).notNull(),
-  destination: varchar('destination', { length: 100 }).notNull(),
-  distance: decimal('distance', { precision: 6, scale: 2 }).notNull(),
-  duration: integer('duration').notNull(), // minutes
-  departureTime: time('departure_time').notNull(),
-  arrivalTime: time('arrival_time').notNull(),
-  frequency: varchar('frequency', { length: 20 }).notNull(), // daily, weekdays, etc.
-  basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
-  totalSeats: integer('total_seats').notNull(),
-  busType: varchar('bus_type', { length: 50 }).notNull(),
-  amenities: jsonb('amenities'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const routes = pgTable("routes", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id")
+    .notNull()
+    .references(() => partners.id),
+  origin: varchar("origin", { length: 100 }).notNull(),
+  destination: varchar("destination", { length: 100 }).notNull(),
+  distance: decimal("distance", { precision: 6, scale: 2 }).notNull(),
+  duration: integer("duration").notNull(), // minutes
+  departureTime: time("departure_time").notNull(),
+  arrivalTime: time("arrival_time").notNull(),
+  frequency: varchar("frequency", { length: 20 }).notNull(), // daily, weekdays, etc.
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  totalSeats: integer("total_seats").notNull(),
+  busType: varchar("bus_type", { length: 50 }).notNull(),
+  amenities: jsonb("amenities"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const RouteSchema = Type.Object({
@@ -302,9 +353,9 @@ export const RouteSchema = Type.Object({
   basePrice: Type.Number(),
   totalSeats: Type.Integer({ minimum: 20, maximum: 60 }),
   busType: Type.Union([
-    Type.Literal('standard'),
-    Type.Literal('premium'),
-    Type.Literal('luxury'),
+    Type.Literal("standard"),
+    Type.Literal("premium"),
+    Type.Literal("luxury"),
   ]),
 });
 ```
@@ -313,46 +364,52 @@ export const RouteSchema = Type.Object({
 
 ```typescript
 // src/index.ts
-import { Elysia } from 'elysia';
-import { cors } from '@elysiajs/cors';
-import { swagger } from '@elysiajs/swagger';
-import { jwt } from '@elysiajs/jwt';
-import { rateLimit } from 'elysia-rate-limit';
+import { Elysia } from "elysia";
+import { cors } from "@elysiajs/cors";
+import { swagger } from "@elysiajs/swagger";
+import { jwt } from "@elysiajs/jwt";
+import { rateLimit } from "elysia-rate-limit";
 
-import { authRoutes } from './modules/auth/auth.routes';
-import { bookingRoutes } from './modules/bookings/booking.routes';
-import { routeRoutes } from './modules/routes/route.routes';
-import { userRoutes } from './modules/users/user.routes';
-import { paymentRoutes } from './modules/payments/payment.routes';
-import { errorMiddleware } from './common/middleware/error.middleware';
+import { authRoutes } from "./modules/auth/auth.routes";
+import { bookingRoutes } from "./modules/bookings/booking.routes";
+import { routeRoutes } from "./modules/routes/route.routes";
+import { userRoutes } from "./modules/users/user.routes";
+import { paymentRoutes } from "./modules/payments/payment.routes";
+import { errorMiddleware } from "./common/middleware/error.middleware";
 
 const app = new Elysia()
   .use(cors())
-  .use(swagger({
-    documentation: {
-      info: {
-        title: 'Algeria Transportation Platform API',
-        version: '1.0.0',
+  .use(
+    swagger({
+      documentation: {
+        info: {
+          title: "Algeria Transportation Platform API",
+          version: "1.0.0",
+        },
+        tags: [
+          { name: "Auth", description: "Authentication endpoints" },
+          { name: "Bookings", description: "Booking management" },
+          { name: "Routes", description: "Route information" },
+          { name: "Users", description: "User management" },
+          { name: "Payments", description: "Payment processing" },
+        ],
       },
-      tags: [
-        { name: 'Auth', description: 'Authentication endpoints' },
-        { name: 'Bookings', description: 'Booking management' },
-        { name: 'Routes', description: 'Route information' },
-        { name: 'Users', description: 'User management' },
-        { name: 'Payments', description: 'Payment processing' },
-      ],
-    },
-  }))
-  .use(jwt({
-    name: 'jwt',
-    secret: process.env.JWT_SECRET!,
-  }))
-  .use(rateLimit({
-    max: 100,
-    duration: 60000, // 1 minute
-  }))
+    })
+  )
+  .use(
+    jwt({
+      name: "jwt",
+      secret: process.env.JWT_SECRET!,
+    })
+  )
+  .use(
+    rateLimit({
+      max: 100,
+      duration: 60000, // 1 minute
+    })
+  )
   .onError(errorMiddleware)
-  .group('/api/v1', (app) =>
+  .group("/api/v1", (app) =>
     app
       .use(authRoutes)
       .use(bookingRoutes)
@@ -367,121 +424,149 @@ console.log(`🚀 Server running at ${app.server?.hostname}:${app.server?.port}`
 
 ```typescript
 // src/modules/auth/auth.routes.ts
-import { Elysia, t } from 'elysia';
-import { UserSchema, UserLoginSchema } from '../../db/schema/users';
-import { AuthService } from './auth.service';
+import { Elysia, t } from "elysia";
+import { UserSchema, UserLoginSchema } from "../../db/schema/users";
+import { AuthService } from "./auth.service";
 
-export const authRoutes = new Elysia({ prefix: '/auth' })
-  .decorate('authService', new AuthService())
-  .post('/register', async ({ body, authService }) => {
-    const user = await authService.register(body);
-    return { success: true, data: user };
-  }, {
-    body: UserSchema,
-    detail: {
-      tags: ['Auth'],
-      summary: 'Register new user',
+export const authRoutes = new Elysia({ prefix: "/auth" })
+  .decorate("authService", new AuthService())
+  .post(
+    "/register",
+    async ({ body, authService }) => {
+      const user = await authService.register(body);
+      return { success: true, data: user };
     },
-  })
-  .post('/login', async ({ body, authService, jwt }) => {
-    const user = await authService.login(body);
-    const token = await jwt.sign({ userId: user.id, role: user.role });
-    return {
-      success: true,
-      data: { user, token },
-    };
-  }, {
-    body: UserLoginSchema,
-    detail: {
-      tags: ['Auth'],
-      summary: 'User login',
+    {
+      body: UserSchema,
+      detail: {
+        tags: ["Auth"],
+        summary: "Register new user",
+      },
+    }
+  )
+  .post(
+    "/login",
+    async ({ body, authService, jwt }) => {
+      const user = await authService.login(body);
+      const token = await jwt.sign({ userId: user.id, role: user.role });
+      return {
+        success: true,
+        data: { user, token },
+      };
     },
-  })
-  .post('/verify-otp', async ({ body, authService }) => {
-    const result = await authService.verifyOTP(body.phone, body.otp);
-    return { success: true, data: result };
-  }, {
-    body: t.Object({
-      phone: t.String(),
-      otp: t.String({ minLength: 6, maxLength: 6 }),
-    }),
-    detail: {
-      tags: ['Auth'],
-      summary: 'Verify OTP for phone verification',
+    {
+      body: UserLoginSchema,
+      detail: {
+        tags: ["Auth"],
+        summary: "User login",
+      },
+    }
+  )
+  .post(
+    "/verify-otp",
+    async ({ body, authService }) => {
+      const result = await authService.verifyOTP(body.phone, body.otp);
+      return { success: true, data: result };
     },
-  });
+    {
+      body: t.Object({
+        phone: t.String(),
+        otp: t.String({ minLength: 6, maxLength: 6 }),
+      }),
+      detail: {
+        tags: ["Auth"],
+        summary: "Verify OTP for phone verification",
+      },
+    }
+  );
 ```
 
 ```typescript
 // src/modules/bookings/booking.routes.ts
-import { Elysia, t } from 'elysia';
-import { BookingSchema } from '../../db/schema/bookings';
-import { BookingService } from './booking.service';
-import { authMiddleware } from '../../common/middleware/auth.middleware';
+import { Elysia, t } from "elysia";
+import { BookingSchema } from "../../db/schema/bookings";
+import { BookingService } from "./booking.service";
+import { authMiddleware } from "../../common/middleware/auth.middleware";
 
-export const bookingRoutes = new Elysia({ prefix: '/bookings' })
-  .decorate('bookingService', new BookingService())
+export const bookingRoutes = new Elysia({ prefix: "/bookings" })
+  .decorate("bookingService", new BookingService())
   .use(authMiddleware)
-  .get('/', async ({ query, bookingService, user }) => {
-    const bookings = await bookingService.getUserBookings(user.id, query);
-    return { success: true, data: bookings };
-  }, {
-    query: t.Object({
-      page: t.Optional(t.Numeric()),
-      limit: t.Optional(t.Numeric()),
-      status: t.Optional(t.String()),
-    }),
-    detail: {
-      tags: ['Bookings'],
-      summary: 'Get user bookings',
+  .get(
+    "/",
+    async ({ query, bookingService, user }) => {
+      const bookings = await bookingService.getUserBookings(user.id, query);
+      return { success: true, data: bookings };
     },
-  })
-  .get('/:id', async ({ params, bookingService, user }) => {
-    const booking = await bookingService.getBookingById(params.id, user.id);
-    return { success: true, data: booking };
-  }, {
-    params: t.Object({
-      id: t.Numeric(),
-    }),
-    detail: {
-      tags: ['Bookings'],
-      summary: 'Get booking by ID',
+    {
+      query: t.Object({
+        page: t.Optional(t.Numeric()),
+        limit: t.Optional(t.Numeric()),
+        status: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Bookings"],
+        summary: "Get user bookings",
+      },
+    }
+  )
+  .get(
+    "/:id",
+    async ({ params, bookingService, user }) => {
+      const booking = await bookingService.getBookingById(params.id, user.id);
+      return { success: true, data: booking };
     },
-  })
-  .post('/', async ({ body, bookingService, user }) => {
-    const booking = await bookingService.createBooking(user.id, body);
-    return { success: true, data: booking };
-  }, {
-    body: BookingSchema,
-    detail: {
-      tags: ['Bookings'],
-      summary: 'Create new booking',
+    {
+      params: t.Object({
+        id: t.Numeric(),
+      }),
+      detail: {
+        tags: ["Bookings"],
+        summary: "Get booking by ID",
+      },
+    }
+  )
+  .post(
+    "/",
+    async ({ body, bookingService, user }) => {
+      const booking = await bookingService.createBooking(user.id, body);
+      return { success: true, data: booking };
     },
-  })
-  .patch('/:id/cancel', async ({ params, bookingService, user }) => {
-    const result = await bookingService.cancelBooking(params.id, user.id);
-    return { success: true, data: result };
-  }, {
-    params: t.Object({
-      id: t.Numeric(),
-    }),
-    detail: {
-      tags: ['Bookings'],
-      summary: 'Cancel booking',
+    {
+      body: BookingSchema,
+      detail: {
+        tags: ["Bookings"],
+        summary: "Create new booking",
+      },
+    }
+  )
+  .patch(
+    "/:id/cancel",
+    async ({ params, bookingService, user }) => {
+      const result = await bookingService.cancelBooking(params.id, user.id);
+      return { success: true, data: result };
     },
-  });
+    {
+      params: t.Object({
+        id: t.Numeric(),
+      }),
+      detail: {
+        tags: ["Bookings"],
+        summary: "Cancel booking",
+      },
+    }
+  );
 ```
 
 #### 3. Service Layer with Drizzle ORM
 
 ```typescript
 // src/modules/bookings/booking.service.ts
-import { eq, and, desc, sql } from 'drizzle-orm';
-import { db } from '../../db';
-import { bookings, routes, users } from '../../db/schema';
-import { PricingService } from '../pricing/pricing.service';
-import { NotificationService } from '../../services/notification.service';
-import { CacheService } from '../../services/cache.service';
+import { eq, and, desc, sql } from "drizzle-orm";
+import { db } from "../../db";
+import { bookings, routes, users } from "../../db/schema";
+import { PricingService } from "../pricing/pricing.service";
+import { NotificationService } from "../../services/notification.service";
+import { CacheService } from "../../services/cache.service";
 
 export class BookingService {
   private pricingService = new PricingService();
@@ -495,7 +580,7 @@ export class BookingService {
     });
 
     if (!route) {
-      throw new Error('Route not found');
+      throw new Error("Route not found");
     }
 
     // 2. Check seat availability
@@ -505,7 +590,7 @@ export class BookingService {
     );
 
     if (availableSeats < data.seatNumbers.length) {
-      throw new Error('Not enough seats available');
+      throw new Error("Not enough seats available");
     }
 
     // 3. Calculate dynamic price
@@ -524,23 +609,26 @@ export class BookingService {
     const bookingRef = this.generateBookingRef();
 
     // 6. Create booking
-    const [booking] = await db.insert(bookings).values({
-      bookingRef,
-      userId,
-      routeId: data.routeId,
-      departureTime: new Date(data.departureTime),
-      arrivalTime: new Date(data.departureTime).setMinutes(
-        new Date(data.departureTime).getMinutes() + route.duration
-      ),
-      seatNumbers: data.seatNumbers,
-      passengers: data.passengers,
-      price: price.toString(),
-      commission: commission.toString(),
-      status: 'confirmed',
-      paymentStatus: data.paymentMethod === 'cash' ? 'pending' : 'processing',
-      paymentMethod: data.paymentMethod,
-      ancillaries: data.ancillaries || null,
-    }).returning();
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        bookingRef,
+        userId,
+        routeId: data.routeId,
+        departureTime: new Date(data.departureTime),
+        arrivalTime: new Date(data.departureTime).setMinutes(
+          new Date(data.departureTime).getMinutes() + route.duration
+        ),
+        seatNumbers: data.seatNumbers,
+        passengers: data.passengers,
+        price: price.toString(),
+        commission: commission.toString(),
+        status: "confirmed",
+        paymentStatus: data.paymentMethod === "cash" ? "pending" : "processing",
+        paymentMethod: data.paymentMethod,
+        ancillaries: data.ancillaries || null,
+      })
+      .returning();
 
     // 7. Clear cache
     await this.cacheService.del(`route:${data.routeId}:availability`);
@@ -590,7 +678,7 @@ export class BookingService {
     // Check cache first
     const cacheKey = `route:${routeId}:${departureTime}:availability`;
     const cached = await this.cacheService.get(cacheKey);
-    
+
     if (cached) {
       return Number(cached);
     }
@@ -609,15 +697,15 @@ export class BookingService {
         and(
           eq(bookings.routeId, routeId),
           eq(bookings.departureTime, new Date(departureTime)),
-          eq(bookings.status, 'confirmed')
+          eq(bookings.status, "confirmed")
         )
       );
 
     const available = route.totalSeats - bookedSeats;
-    
+
     // Cache for 5 minutes
     await this.cacheService.set(cacheKey, available.toString(), 300);
-    
+
     return available;
   }
 
@@ -633,19 +721,13 @@ export class BookingService {
 
 ```typescript
 // src/modules/pricing/pricing.service.ts
-import { db } from '../../db';
-import { bookings, routes } from '../../db/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { db } from "../../db";
+import { bookings, routes } from "../../db/schema";
+import { eq, and, gte, lte } from "drizzle-orm";
 
 export class PricingService {
   async calculatePrice(params: PriceParams): Promise<number> {
-    const {
-      routeId,
-      basePrice,
-      seats,
-      departureTime,
-      ancillaries,
-    } = params;
+    const { routeId, basePrice, seats, departureTime, ancillaries } = params;
 
     let finalPrice = Number(basePrice) * seats;
 
@@ -655,7 +737,10 @@ export class PricingService {
     finalPrice *= timeMultiplier;
 
     // 2. Demand-based multiplier
-    const demandMultiplier = await this.getDemandMultiplier(routeId, departureTime);
+    const demandMultiplier = await this.getDemandMultiplier(
+      routeId,
+      departureTime
+    );
     finalPrice *= demandMultiplier;
 
     // 3. Day of week multiplier
@@ -680,15 +765,18 @@ export class PricingService {
   }
 
   private getTimeMultiplier(days: number): number {
-    if (days >= 30) return 0.8;  // 20% discount
-    if (days >= 15) return 0.9;  // 10% discount
-    if (days >= 7) return 1.0;   // base price
-    if (days >= 2) return 1.15;  // 15% increase
-    if (days >= 1) return 1.3;   // 30% increase
-    return 1.4;                  // 40% increase (same day)
+    if (days >= 30) return 0.8; // 20% discount
+    if (days >= 15) return 0.9; // 10% discount
+    if (days >= 7) return 1.0; // base price
+    if (days >= 2) return 1.15; // 15% increase
+    if (days >= 1) return 1.3; // 30% increase
+    return 1.4; // 40% increase (same day)
   }
 
-  private async getDemandMultiplier(routeId: number, departureTime: string): Promise<number> {
+  private async getDemandMultiplier(
+    routeId: number,
+    departureTime: string
+  ): Promise<number> {
     const route = await db.query.routes.findFirst({
       where: eq(routes.id, routeId),
     });
@@ -709,30 +797,30 @@ export class PricingService {
           eq(bookings.routeId, routeId),
           gte(bookings.departureTime, dayStart),
           lte(bookings.departureTime, dayEnd),
-          eq(bookings.status, 'confirmed')
+          eq(bookings.status, "confirmed")
         )
       );
 
     const occupancyRate = count / route.totalSeats;
 
-    if (occupancyRate >= 0.8) return 1.3;  // 30% increase (high demand)
+    if (occupancyRate >= 0.8) return 1.3; // 30% increase (high demand)
     if (occupancyRate >= 0.6) return 1.15; // 15% increase
-    if (occupancyRate >= 0.4) return 1.0;  // base price
-    return 0.95;                           // 5% discount (low demand)
+    if (occupancyRate >= 0.4) return 1.0; // base price
+    return 0.95; // 5% discount (low demand)
   }
 
   private getDayOfWeekMultiplier(departureTime: string): number {
     const day = new Date(departureTime).getDay();
-    
+
     // Thursday evening = weekend start (high demand)
     if (day === 4) return 1.15;
-    
+
     // Friday = low demand (holy day)
     if (day === 5) return 0.9;
-    
+
     // Sunday = return travel (high demand)
     if (day === 0) return 1.1;
-    
+
     return 1.0;
   }
 }
@@ -798,20 +886,20 @@ tanstack-web/
 
 ```typescript
 // app/routes/index.tsx
-import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { RouteSearchForm } from '../components/search/RouteSearchForm';
-import { PopularRoutes } from '../components/home/PopularRoutes';
-import { Features } from '../components/home/Features';
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { RouteSearchForm } from "../components/search/RouteSearchForm";
+import { PopularRoutes } from "../components/home/PopularRoutes";
+import { Features } from "../components/home/Features";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
   const { data: popularRoutes } = useQuery({
-    queryKey: ['routes', 'popular'],
-    queryFn: () => fetch('/api/v1/routes/popular').then(r => r.json()),
+    queryKey: ["routes", "popular"],
+    queryFn: () => fetch("/api/v1/routes/popular").then((r) => r.json()),
   });
 
   return (
@@ -837,19 +925,19 @@ function HomePage() {
 
 ```typescript
 // app/components/search/RouteSearchForm.tsx
-import { useForm } from '@tanstack/react-form';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
-import { zodValidator } from '@tanstack/zod-form-adapter';
-import { z } from 'zod';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Calendar } from '../ui/calendar';
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-form-adapter";
+import { z } from "zod";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Calendar } from "../ui/calendar";
 
 const searchSchema = z.object({
-  origin: z.string().min(2, 'Origin required'),
-  destination: z.string().min(2, 'Destination required'),
+  origin: z.string().min(2, "Origin required"),
+  destination: z.string().min(2, "Destination required"),
   date: z.date(),
   passengers: z.number().min(1).max(9),
 });
@@ -859,14 +947,14 @@ export function RouteSearchForm() {
 
   const form = useForm({
     defaultValues: {
-      origin: '',
-      destination: '',
+      origin: "",
+      destination: "",
       date: new Date(),
       passengers: 1,
     },
     onSubmit: async ({ value }) => {
       navigate({
-        to: '/search',
+        to: "/search",
         search: {
           from: value.origin,
           to: value.destination,
@@ -976,16 +1064,16 @@ export function RouteSearchForm() {
 
 ```typescript
 // app/routes/search.tsx
-import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { RouteCard } from '../components/search/RouteCard';
-import { FilterSidebar } from '../components/search/FilterSidebar';
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { RouteCard } from "../components/search/RouteCard";
+import { FilterSidebar } from "../components/search/FilterSidebar";
 
-export const Route = createFileRoute('/search')({
+export const Route = createFileRoute("/search")({
   component: SearchPage,
   validateSearch: (search) => ({
-    from: (search.from as string) || '',
-    to: (search.to as string) || '',
+    from: (search.from as string) || "",
+    to: (search.to as string) || "",
     date: (search.date as string) || new Date().toISOString(),
     passengers: Number(search.passengers) || 1,
   }),
@@ -995,7 +1083,7 @@ function SearchPage() {
   const { from, to, date, passengers } = Route.useSearch();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['routes', 'search', from, to, date, passengers],
+    queryKey: ["routes", "search", from, to, date, passengers],
     queryFn: () =>
       fetch(
         `/api/v1/routes/search?from=${from}&to=${to}&date=${date}&passengers=${passengers}`
@@ -1079,42 +1167,42 @@ expo-app/
 
 ```typescript
 // app/(tabs)/_layout.tsx
-import { Tabs } from 'expo-router';
-import { Home, Search, List, User } from 'lucide-react-native';
+import { Tabs } from "expo-router";
+import { Home, Search, List, User } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#10b981',
+        tabBarActiveTintColor: "#10b981",
         headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Search',
-          tabBarIcon: ({ color}) => <Search size={24} color={color} />,
+          title: "Search",
+          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'My Bookings',
+          title: "My Bookings",
           tabBarIcon: ({ color }) => <List size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: "Profile",
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
       />
@@ -1125,17 +1213,17 @@ export default function TabLayout() {
 
 ```typescript
 // app/(tabs)/index.tsx
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { RouteSearchForm } from '../../components/search/RouteSearchForm';
-import { PopularRoutes } from '../../components/home/PopularRoutes';
-import { Text } from '../../components/ui/Text';
-import { Card } from '../../components/ui/Card';
+import { View, ScrollView, StyleSheet } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { RouteSearchForm } from "../../components/search/RouteSearchForm";
+import { PopularRoutes } from "../../components/home/PopularRoutes";
+import { Text } from "../../components/ui/Text";
+import { Card } from "../../components/ui/Card";
 
 export default function HomeScreen() {
   const { data: popularRoutes } = useQuery({
-    queryKey: ['routes', 'popular'],
-    queryFn: () => fetch('/api/v1/routes/popular').then(r => r.json()),
+    queryKey: ["routes", "popular"],
+    queryFn: () => fetch("/api/v1/routes/popular").then((r) => r.json()),
   });
 
   return (
@@ -1160,28 +1248,28 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   hero: {
     padding: 24,
-    backgroundColor: '#10b981',
+    backgroundColor: "#10b981",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: '#f3f4f6',
+    color: "#f3f4f6",
   },
   section: {
     padding: 16,
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
   },
 });
@@ -1220,7 +1308,7 @@ dashboard/
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -1296,24 +1384,28 @@ app = "algeria-transport-api"
 ## Performance Optimization
 
 ### 1. Database Optimization
+
 - Connection pooling (pg-pool)
 - Query optimization with indexes
 - Read replicas for analytics
 - Materialized views for reports
 
 ### 2. Caching Strategy
+
 - Redis for session data
 - Route availability cache (5 min TTL)
 - Popular routes cache (1 hour TTL)
 - CDN for static assets
 
 ### 3. Frontend Optimization
+
 - Code splitting
 - Image optimization (next/image or expo-image)
 - Lazy loading
 - Service Worker (PWA)
 
 ### 4. API Optimization
+
 - Response compression (gzip)
 - Rate limiting
 - Request batching
