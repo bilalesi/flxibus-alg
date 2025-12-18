@@ -2,6 +2,10 @@ title: Flxibus-alg
 description: naaah
 theme: jekyll-theme-cayman
 
+# Exclude files with code that breaks Jekyll
+exclude:
+  - claude/technical_architecture (1).md
+
 # Navigation
 header_pages:
   - index.md
